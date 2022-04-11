@@ -258,7 +258,7 @@ public class Cell<T> implements PauseReason, EventPublisher {
     /**
      * retrieve a msg, and block the Java thread for the time given.
      * 
-     * @param millis
+     * @param //millis
      * . max wait time
      * @return null if timed out.
      */

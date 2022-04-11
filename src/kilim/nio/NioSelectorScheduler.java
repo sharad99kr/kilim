@@ -1,6 +1,6 @@
 /* Copyright (c) 2006, Sriram Srinivasan, nqzero 2016
  *
- * You may distribute this software under the terms of the license 
+ * You may distribute this software under the terms of the license
  * specified in the file "License"
  */
 
@@ -23,43 +23,43 @@ import kilim.Task;
 
 /**
  * This class wraps a selector and runs it in a separate thread.
- * 
+ *
  * It runs one or more ListenTasks (bound to their respective ports), which in turn spawn as many session tasks (see
  * {@link #listen(int, Class, Scheduler)}) as the number of new http connections. The supplied scheduler is used to
  * execute the tasks. It is possible, although not typical, to run tasks in the NioSelectorScheduler itself, as it too
  * is a scheduler.
- * 
+ *
  * Usage is as follows:
  * <pre>
  *  NioSelectorScheduler nss = new NioSelectorScheduler();
  *  nss.listen(8080, MySessionTask.class, Scheduler.getDefaultScheduler();
- *  
+ *
  *  class MySessionTask extends SessionTask {
  *  ...
  *  }
  * </pre>
- *  @see SessionTask 
+ *  @see SessionTask
  */
 public class NioSelectorScheduler {
     //TODO: Fix hardcoding
     public static int         LISTEN_BACKLOG  = 1000;
 
-    private Selector           sel;
-    /* 
+    private static Selector           sel;
+    /*
      * The thread in which the selector runs. THe NioSelectorScheduler only runs one thread,
      * unlike typical schedulers that manage a pool of threads.
      */
     private SelectorThread     selectorThread;
-    
+
     /**
      * SessionTask registers its endpoint with the selector by sending a SockEvent
-     * message on this mailbox. 
+     * message on this mailbox.
      */
     final Mailbox<SockEvent> regbox = new Mailbox<SockEvent>(1000);
-    AtomicBoolean update = new AtomicBoolean();
-    final private Task regtask;
-    volatile boolean running = true;
-    
+    static AtomicBoolean update = new AtomicBoolean();
+    static private Task regtask = null;
+    static volatile boolean running = true;
+
     /**
      * @throws IOException
      */
@@ -89,11 +89,31 @@ public class NioSelectorScheduler {
     }
 
     public void shutdown() { running = false; sel.wakeup(); }
-    
-    class SelectorThread extends Thread {
+
+    static class SelectorThread extends Thread {
+        private static SelectorThread instance = null;
+
+
+
+        //returns the only available object
+        public static SelectorThread getInstance(){
+            if(instance!=null){
+                return instance;
+            }else{
+                instance = new SelectorThread();
+                return instance;
+            }
+
+        }
+
+        public void printMessage(){
+            System.out.println("Hello from Singleton object!!!");
+        }
+
         public SelectorThread() {
             super("KilimSelector"+":"+Thread.currentThread().getId());
         }
+
 
         @Override
         public void run() {
@@ -129,7 +149,7 @@ public class NioSelectorScheduler {
                         sk.interestOps(0);
                         assert(o instanceof SockEvent);
                         SockEvent ev = (SockEvent) o;
-                        ev.replyTo.nonBlockingPut(ev);
+                        ev.replyTo.putnb(ev);
                     }
                 }
                 if (update.getAndSet(false))
@@ -154,11 +174,11 @@ public class NioSelectorScheduler {
             ssc.socket().bind(new InetSocketAddress(port), LISTEN_BACKLOG);
             ssc.configureBlocking(false);
             endpoint = new EndPoint(NioSelectorScheduler.this,ssc);
-        
+
             // if port is automatically assigned then retrieve actual value
             if(port == 0) {
                 this.port = ssc.socket().getLocalPort();
-            };    
+            };
         }
 
         public String toString() {

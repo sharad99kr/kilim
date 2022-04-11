@@ -401,6 +401,9 @@ public class Mailbox<T> implements PauseReason, EventPublisher {
         blockingPut(msg, 0 /* infinite wait */);
     }
 
+    public void putnb(T ev) {
+    }
+
     public class BlockingSubscriber implements EventSubscriber {
         public volatile boolean eventRcvd = false;
         private long current = -1;
