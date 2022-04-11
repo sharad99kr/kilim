@@ -150,8 +150,8 @@ public class HttpResponse extends HttpMsg {
         if (bodyStream != null) {
             bodyStream.reset();
         }
-        if (buffer != null) {
-            buffer.clear();
+        if (getBuffer("Byte") != null) {
+            getBuffer("Byte").clear();
         }
     }
 

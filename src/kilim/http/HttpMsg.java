@@ -6,8 +6,15 @@
 
 package kilim.http;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-public class HttpMsg {
-  ByteBuffer buffer;
+public class HttpMsg implements IBuffer {
+
+
+  @Override
+  public Buffer getBuffer(String bufferType) {
+    BufferFactory bf=new BufferFactory();
+    return  bf.getBuffer(bufferType);
+  }
 }

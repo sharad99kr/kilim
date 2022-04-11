@@ -28,6 +28,8 @@ public class HttpRequest extends HttpMsg {
      */
     public String method;
 
+    public ByteBuffer buffer= (ByteBuffer) getBuffer("byte");
+
     /**
      * The UTF8 decoded path from the HTTP header.
      */
